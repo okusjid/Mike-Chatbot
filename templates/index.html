@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatbot</title>
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9f9f9;
+}
+
+#chatbot-container {
+    width: 350px;
+    margin: 50px auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#chatbot-messages {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.message {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.message.bot {
+    background-color: #e4f1fe;
+}
+
+.message.user {
+    background-color: #c7ecee;
+    text-align: right;
+}
+
+#email-step, #message-step {
+    padding: 20px;
+    text-align: center;
+}
+
+#email-input, #message-input {
+    width: calc(100% - 80px);
+    padding: 8px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+}
+
+#next-btn, #send-message-btn {
+    width: 80px;
+    padding: 8px;
+    border: none;
+    border-radius: 20px;
+    background-color: #3498db;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#next-btn:hover, #send-message-btn:hover {
+    background-color: #2980b9;
+}
+</style>
+</head>
+<body>
+<div id="chatbot-container">
+    <div id="chatbot-messages"></div>
+    <div id="email-step">
+        <input type="text" id="email-input" placeholder="Enter your email">
+        <button id="next-btn">Next</button>
+    </div>
+    <div id="message-step" style="display: none;">
+        <input type="text" id="message-input" placeholder="Type your message">
+        <button id="send-message-btn">Send</button>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Define API endpoint
+    const apiUrl = "http://107.23.124.176/chat";
+
+    var email = '';
+    var step = 0;
+
+    // Initial message
+    displayMessage("Hi, I see you are on our website page. My name is Mike, I'm just here as the online assistant and will try to answer any questions you may have and then set you up for a free estimate.", 'bot');
+    // Send initial message
+    sendMessage("Hi, I see you are on our website page. My name is Mike, I'm just here as the online assistant and will try to answer any questions you may have and then set you up for a free estimate.");
+
+    // Event listener for 'Next' button click
+    document.getElementById('next-btn').addEventListener('click', function() {
+        if (step === 0) {
+            email = document.getElementById('email-input').value;
+            if (email !== "") {
+                document.getElementById('email-step').style.display = 'none';
+                document.getElementById('message-step').style.display = 'block';
+                step++;
+            }
+        } else if (step === 1) {
+            var userMessage = document.getElementById('message-input').value;
+            if (userMessage !== "") {
+                displayMessage(userMessage, 'user');
+                sendMessage(userMessage);
+                document.getElementById('message-input').value = ''; // Clear message input
+            }
+        }
+    });
+
+    // Event listener for 'Send' button click
+    document.getElementById('send-message-btn').addEventListener('click', function() {
+        var userMessage = document.getElementById('message-input').value;
+        if (userMessage !== "") {
+            displayMessage(userMessage, 'user');
+            sendMessage(userMessage);
+            document.getElementById('message-input').value = ''; // Clear message input
+        }
+    });
+
+    // Function to send message to the chatbot API
+ // Function to send message to the chatbot API
+function sendMessage(message) {
+    console.log('Sending request:', { message: message });
+    $.ajax({
+        url: apiUrl,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ message: message }),
+        success: function(response) {
+            displayMessage(response.message, 'bot');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error sending message:', error);
+        }
+    });
+}
+
+
+    // Function to display chatbot response
+    function displayMessage(message, sender) {
+        var messagesContainer = document.getElementById('chatbot-messages');
+        var newMessage = document.createElement('div');
+        newMessage.className = 'message ' + sender;
+        newMessage.textContent = message;
+        messagesContainer.appendChild(newMessage);
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+});
+</script>
+</body>
+</html>

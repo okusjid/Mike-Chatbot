@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: white;
+        }
+
+        #emailContainer {
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #chatHeader {
+            background-color: blue;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+        }
+
+        #chatBody {
+            padding: 0px 20px;
+            height: 70vh;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 20px;
+        }
+
+        .userMessage {
+            text-align: right;
+            color: #4caf50;
+        }
+
+        .botMessage {
+            text-align: left;
+            color: #333;
+        }
+
+        .message p {
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: inline-block;
+            max-width: 80%;
+        }
+
+        #chatForm {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: absolute;
+            bottom: 0;
+            width: 88vw;
+            background-color: white
+        }
+
+        #emailForm {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            width: 90%;
+        }
+
+        label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            background-color: white
+        }
+
+        input {
+            padding: 10px;
+            margin-bottom: 15px;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: blue;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="emailContainer">
+        <form id="emailForm">
+            <label for="email">Enter your email:</label>
+            <input type="email" id="email" name="email" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <div id="chatContainer" style="display: none;">
+        <div id="chatHeader">
+            <h2>Mike</h2>
+        </div>
+        <div id="chatBody"></div>
+        <form id="chatForm">
+            <label for="question">Ask a question:</label>
+            <input type="text" id="question" name="question" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        // Check if email is already stored in local storage
+        var userEmail = null;
+        // Function to show the chat container
+        function showChatContainer() {
+            document.getElementById("emailContainer").style.display = "none";
+            document.getElementById("chatContainer").style.display = "block";
+        }
+
+        // Function to handle submission of email form
+        document.getElementById("emailForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            // Get the email from the input field
+            var email = document.getElementById("email").value;
+
+            userEmail = email;
+
+            // Show the chat container
+            showChatContainer();
+            // add the initial message from the Matt
+            var botMessage = document.createElement("div");
+            botMessage.classList.add("message", "botMessage");
+            botMessage.innerHTML = '<p>' + "Hi, I see you are on our website page. My name is Mike, I'm just here as the online assistant and will try to answer any questions you may have and then set you up for a free estimate." + '</p>';
+
+            // Append the bot message to the chat body
+            document.getElementById("chatBody").appendChild(botMessage);
+
+        });
+
+        document.getElementById("chatForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            // Get the question from the input field
+            var question = document.getElementById("question").value;
+
+            // Create a new user message
+            var userMessage = document.createElement("div");
+            userMessage.classList.add("message", "userMessage");
+            userMessage.innerHTML = '<p>' + question + '</p>';
+
+            // Append the user message to the chat body
+            document.getElementById("chatBody").appendChild(userMessage);
+
+            // Scroll to the bottom of the chat body
+            document.getElementById("chatBody").scrollTop = document.getElementById("chatBody").scrollHeight;
+
+            // Create a JSON object with the question
+            const email = userEmail;
+            var data = {
+                "message": question,
+                "email": email
+            };
+
+            // Send a POST request to the Flask server
+            fetch("http://127.0.0.1:8000/chat", { // Update the URL to match your Flask server
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    // Create a new bot message with the answer
+                    var botMessage = document.createElement("div");
+                    botMessage.classList.add("message", "botMessage");
+                    botMessage.innerHTML = '<p>' + data.message + '</p>';
+
+                    // Append the bot message to the chat body
+                    document.getElementById("chatBody").appendChild(botMessage);
+
+                    // Scroll to the bottom of the chat body
+                    document.getElementById("chatBody").scrollTop = document.getElementById("chatBody").scrollHeight;
+
+                    // Resize the iframe based on the updated content height
+                    resizeIframe();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+
+            // Clear the input field
+            document.getElementById("question").value = "";
+        });
+
+        // Function to resize the iframe based on the content height
+        function resizeIframe() {
+            var iframe = window.frameElement;
+            var bodyHeight = document.body.scrollHeight;
+            iframe.style.height = bodyHeight + "px";
+        }
+    </script>
+</body>
+
+</html>
